@@ -1,0 +1,15 @@
+name: page push
+on: [push]
+jobs:
+  build_and_deploy:
+    name: build elm and push to pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: compile from elm
+        run: elm make --optimize --output=public/index.html src/RotatingCan.elm 
+      - name: deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages
+          folder: public
