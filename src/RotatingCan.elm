@@ -144,13 +144,13 @@ camera =
         }
 
 
-canMesh : Mesh.Bumpy WorldCoordinates
+canMesh : Mesh.Textured WorldCoordinates
 canMesh =
-    Mesh.bumpyFaces (tube 0.666)
+    Mesh.texturedFaces (tube 0.666)
 
-leftoverCanMesh : Mesh.Bumpy WorldCoordinates
+leftoverCanMesh : Mesh.Textured WorldCoordinates
 leftoverCanMesh =
-    Mesh.bumpyFaces (tube -0.35)
+    Mesh.texturedFaces (tube -0.35)
 
 tube fraction =
     TriangularMesh.tube 1 72 <|
@@ -162,8 +162,8 @@ tube fraction =
             { position = Point3d.centimeters (-5 * u) (2 * sin theta) (-2 * cos theta)
             , normal = Vector3d.unsafe { x = cos theta, y = (sin theta), z = 0 }
             , uv = (v, u)
-            , tangent = Vector3d.unsafe { x = -(sin theta), y = cos theta, z = 0 }
-            , tangentBasisIsRightHanded = True
+            --, tangent = Vector3d.unsafe { x = -(sin theta), y = cos theta, z = 0 }
+            --, tangentBasisIsRightHanded = True
             }
 
 top : Cylinder3d Meters WorldCoordinates
