@@ -50,7 +50,7 @@ init =
     (Loading
         { colorTexture = Nothing
         }
-    , Material.load "http://localhost:8000/textures/goldar.jpg"
+    , Material.load "https://launi.me/dirigim.us/textures/goldar.jpg"
         |> Task.attempt GotColorTexture
     )
 
