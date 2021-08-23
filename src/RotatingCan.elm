@@ -163,14 +163,14 @@ environment =
 
 camera : Camera3d Meters WorldCoordinates
 camera =
-    Camera3d.orthographic
+    Camera3d.perspective
         { viewpoint =
             Viewpoint3d.lookAt
                 { focalPoint = Point3d.origin
-                , eyePoint = Point3d.centimeters 20 10 5
+                , eyePoint = Point3d.centimeters 0 19.9 6
                 , upDirection = Direction3d.positiveZ
                 }
-        , viewportHeight = Length.centimeters 12
+        , verticalFieldOfView = Angle.degrees 29
         }
 
 
@@ -241,8 +241,8 @@ view model =
                     [ Element.html <|
                         Scene3d.custom
                             { camera = camera
-                            , clipDepth = centimeters 0.5
-                            , dimensions = ( Pixels.int 800, Pixels.int 800 )
+                            , clipDepth = centimeters 0.1
+                            , dimensions = ( Pixels.int 500, Pixels.int 500 )
                             , antialiasing = Scene3d.multisampling
                             , lights = Scene3d.threeLights sunlight sky environment
                             , exposure = Scene3d.exposureValue 10.5
