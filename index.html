@@ -10693,25 +10693,36 @@ var $ianmackenzie$elm_3d_camera$Viewpoint3d$lookAt = function (_arguments) {
 	}
 };
 var $ianmackenzie$elm_3d_camera$Camera3d$Types$Camera3d = $elm$core$Basics$identity;
-var $ianmackenzie$elm_3d_camera$Camera3d$Types$Orthographic = function (a) {
-	return {$: 1, a: a};
+var $ianmackenzie$elm_3d_camera$Camera3d$Types$Perspective = function (a) {
+	return {$: 0, a: a};
 };
-var $ianmackenzie$elm_3d_camera$Camera3d$orthographic = function (_arguments) {
+var $ianmackenzie$elm_units$Quantity$half = function (_v0) {
+	var value = _v0;
+	return 0.5 * value;
+};
+var $elm$core$Basics$tan = _Basics_tan;
+var $ianmackenzie$elm_units$Angle$tan = function (_v0) {
+	var angle = _v0;
+	return $elm$core$Basics$tan(angle);
+};
+var $ianmackenzie$elm_3d_camera$Camera3d$perspective = function (_arguments) {
+	var halfFieldOfView = $ianmackenzie$elm_units$Quantity$half(
+		$ianmackenzie$elm_units$Quantity$abs(_arguments.hk));
+	var frustumSlope = $ianmackenzie$elm_units$Angle$tan(halfFieldOfView);
 	return {
-		c6: $ianmackenzie$elm_3d_camera$Camera3d$Types$Orthographic(
-			$ianmackenzie$elm_units$Quantity$abs(_arguments.hn)),
+		c6: $ianmackenzie$elm_3d_camera$Camera3d$Types$Perspective(frustumSlope),
 		hm: _arguments.hm
 	};
 };
-var $author$project$RotatingCan$camera = $ianmackenzie$elm_3d_camera$Camera3d$orthographic(
+var $author$project$RotatingCan$camera = $ianmackenzie$elm_3d_camera$Camera3d$perspective(
 	{
+		hk: $ianmackenzie$elm_units$Angle$degrees(29),
 		hm: $ianmackenzie$elm_3d_camera$Viewpoint3d$lookAt(
 			{
-				fS: A3($ianmackenzie$elm_geometry$Point3d$centimeters, 20, 10, 5),
+				fS: A3($ianmackenzie$elm_geometry$Point3d$centimeters, 0, 19.9, 6),
 				fW: $ianmackenzie$elm_geometry$Point3d$origin,
 				dj: $ianmackenzie$elm_geometry$Direction3d$positiveZ
-			}),
-		hn: $ianmackenzie$elm_units$Length$centimeters(12)
+			})
 	});
 var $mdgriffith$elm_ui$Internal$Model$AlignX = function (a) {
 	return {$: 6, a: a};
@@ -11195,10 +11206,6 @@ var $ianmackenzie$elm_geometry$BoundingBox3d$union = F2(
 var $ianmackenzie$elm_geometry$Point3d$coordinates = function (_v0) {
 	var p = _v0;
 	return _Utils_Tuple3(p.hq, p.hu, p.hy);
-};
-var $ianmackenzie$elm_units$Quantity$half = function (_v0) {
-	var value = _v0;
-	return 0.5 * value;
 };
 var $ianmackenzie$elm_geometry$BoundingBox3d$withDimensions = F2(
 	function (_v0, givenCenterPoint) {
@@ -17796,10 +17803,10 @@ var $author$project$RotatingCan$view = function (model) {
 									e8: $ianmackenzie$elm_3d_scene$Scene3d$multisampling,
 									fd: $ianmackenzie$elm_3d_scene$Scene3d$transparentBackground,
 									fr: $author$project$RotatingCan$camera,
-									fx: $ianmackenzie$elm_units$Length$centimeters(0.5),
+									fx: $ianmackenzie$elm_units$Length$centimeters(0.1),
 									fI: _Utils_Tuple2(
-										$ianmackenzie$elm_units$Pixels$int(800),
-										$ianmackenzie$elm_units$Pixels$int(800)),
+										$ianmackenzie$elm_units$Pixels$int(500),
+										$ianmackenzie$elm_units$Pixels$int(500)),
 									fP: entities,
 									fR: $ianmackenzie$elm_3d_scene$Scene3d$exposureValue(10.5),
 									gj: A3($ianmackenzie$elm_3d_scene$Scene3d$threeLights, $author$project$RotatingCan$sunlight, $author$project$RotatingCan$sky, $author$project$RotatingCan$environment),
