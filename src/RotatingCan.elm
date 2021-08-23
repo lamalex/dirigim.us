@@ -12,17 +12,18 @@ import Element
 import Duration exposing (Duration)
 import Html exposing (Html)
 import Illuminance
+import List
 import Length exposing (centimeters, Meters)
 import Pixels
 import Point3d
 import Quantity
 import Scene3d
 import Scene3d.Light as Light exposing (Light)
-import Scene3d.Material as Material exposing (Material)
-import Scene3d.Mesh as Mesh exposing (Mesh)
+import Scene3d.Material as Material
+import Scene3d.Mesh as Mesh
 import Task
 import TriangularMesh
-import Vector3d exposing (Vector3d)
+import Vector3d
 import Viewpoint3d
 import WebGL.Texture
 
@@ -37,6 +38,10 @@ type Model
     | Loaded
         {
             colorTexture : Material.Texture Color
+            , labelSide : Mesh.Textured WorldCoordinates
+            , metalSide : Mesh.Textured WorldCoordinates
+            , top : Cylinder3d Meters WorldCoordinates
+            , bottom : Cylinder3d Meters WorldCoordinates
             , angle : Angle
         }
     | Errored String
@@ -74,7 +79,7 @@ update message model =
                         Tick duration ->
                             let
                                 rotationRate = 
-                                    Angle.degrees 90 |> Quantity.per Duration.second
+                                    Angle.degrees 7 |> Quantity.per Duration.second
                                 updatedAngle = 
                                     loadedModel.angle |> Quantity.plus (rotationRate |> Quantity.for duration)
                             in
@@ -94,6 +99,10 @@ checkIfLoaded textures =
         ( Just colorTexture ) ->
             Loaded
                 { colorTexture = colorTexture
+                , labelSide = canMesh
+                , metalSide = leftoverCanMesh
+                , top = canEnd -5.10
+                , bottom = canEnd 0
                 , angle = Quantity.zero
                 }
         _ ->
@@ -101,16 +110,16 @@ checkIfLoaded textures =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Browser.Events.onAnimationFrameDelta (Duration.milliseconds >> Tick)
 
 
 sunlight : Light WorldCoordinates Bool
 sunlight =
     Light.directional (Light.castsShadows False)
-        { chromaticity = Light.sunlight
-        , intensity = Illuminance.lux 20000
-        , direction = Direction3d.yz (Angle.degrees -120)
+        { chromaticity = Light.incandescent
+        , intensity = Illuminance.lux 100000
+        , direction = Direction3d.xyZ (Angle.degrees -120) (Angle.degrees 120)
         }
 
 
@@ -130,6 +139,7 @@ environment =
         , intensity = Illuminance.lux 5000
         , chromaticity = Light.daylight
         }
+
 
 camera : Camera3d Meters WorldCoordinates
 camera =
@@ -162,38 +172,38 @@ tube fraction =
             { position = Point3d.centimeters (-5 * u) (2 * sin theta) (-2 * cos theta)
             , normal = Vector3d.unsafe { x = cos theta, y = (sin theta), z = 0 }
             , uv = (v, u)
-            --, tangent = Vector3d.unsafe { x = -(sin theta), y = cos theta, z = 0 }
-            --, tangentBasisIsRightHanded = True
             }
 
-top : Cylinder3d Meters WorldCoordinates
-top =
+
+canEnd : Float -> Cylinder3d Meters WorldCoordinates
+canEnd start =
     let
-        start = -5
         end = start + 0.1
     in
     Cylinder3d.along Axis3d.x
         { start = Length.centimeters start
         , end = Length.centimeters end
-        , radius = Length.centimeters 1.98
+        , radius = Length.centimeters 2
         }
+
+
+makeShadowScene material mesh
+    = Scene3d.meshWithShadow material mesh (Mesh.shadow mesh)
+
 
 view : Model -> Html msg
 view model =
     case model of
-        Loaded { colorTexture, angle } ->
+        Loaded { colorTexture, labelSide, metalSide, top, bottom, angle } ->
             let
                 nakedMaterial =
                     Material.metal
                         { baseColor = Color.grey
-                        , roughness = 0.5
+                        , roughness = 0.1
                         }
 
                 material =
-                    Material.texturedMetal
-                        { baseColor = colorTexture
-                        , roughness = Material.constant 0.5
-                        }
+                    Material.texturedMatte colorTexture
 
                 tweakAxis =
                     Axis3d.through Point3d.origin <|
@@ -203,11 +213,13 @@ view model =
                     Axis3d.through Point3d.origin <|
                         Direction3d.positiveZ
 
-                
-                entities = [Scene3d.cylinder nakedMaterial top , Scene3d.mesh material canMesh, Scene3d.mesh nakedMaterial leftoverCanMesh]
+                entities = [Scene3d.cylinder nakedMaterial top
+                    , Scene3d.cylinder nakedMaterial bottom
+                    , makeShadowScene material labelSide
+                    , makeShadowScene nakedMaterial metalSide
+                    ]
                     |> List.map (Scene3d.rotateAround tweakAxis (Angle.degrees 90))
                     |> List.map (Scene3d.rotateAround rotationAxis angle)
-
             in
             Element.layout [ Element.width Element.fill, Element.height Element.fill ] <|
                 Element.row [ Element.centerX, Element.centerY ]
@@ -225,7 +237,7 @@ view model =
                             , entities = entities
                             }
                     ]
-        
+
         Loading _ ->
             Html.text "Something bean-filled is coming..."
         
