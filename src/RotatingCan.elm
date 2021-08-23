@@ -203,12 +203,8 @@ makeShadowScene material mesh
 view : Model -> Html msg
 view model =
     case model of
-        Loaded { colorTexture, labelSide, metalSide, top, bottom, angle } ->
+        Loaded { labelSide, metalSide, top, bottom, angle } ->
             let
-                
-                material =
-                    Material.texturedMatte colorTexture
-
                 tweakAxis =
                     Axis3d.through Point3d.origin <|
                         Direction3d.positiveY
