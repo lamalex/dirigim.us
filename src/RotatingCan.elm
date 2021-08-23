@@ -38,10 +38,10 @@ type Model
     | Loaded
         {
             colorTexture : Material.Texture Color
-            , labelSide : Mesh.Textured WorldCoordinates
-            , metalSide : Mesh.Textured WorldCoordinates
-            , top : Cylinder3d Meters WorldCoordinates
-            , bottom : Cylinder3d Meters WorldCoordinates
+            , labelSide : Scene3d.Entity WorldCoordinates
+            , metalSide : Scene3d.Entity WorldCoordinates
+            , top : Scene3d.Entity WorldCoordinates
+            , bottom : Scene3d.Entity WorldCoordinates
             , angle : Angle
         }
     | Errored String
@@ -97,12 +97,21 @@ checkIfLoaded :
 checkIfLoaded textures =
     case ( textures.colorTexture ) of
         ( Just colorTexture ) ->
+            let
+                labelTexture =
+                    Material.texturedMatte colorTexture
+                nakedMaterial =
+                    Material.metal
+                        { baseColor = Color.grey
+                        , roughness = 0.1
+                        }
+            in
             Loaded
                 { colorTexture = colorTexture
-                , labelSide = canMesh
-                , metalSide = leftoverCanMesh
-                , top = canEnd -5.10
-                , bottom = canEnd 0
+                , labelSide = makeShadowScene labelTexture canMesh
+                , metalSide = makeShadowScene labelTexture leftoverCanMesh
+                , top = Scene3d.cylinder nakedMaterial (canEnd -5.10)
+                , bottom = Scene3d.cylinder nakedMaterial (canEnd 0)
                 , angle = Quantity.zero
                 }
         _ ->
@@ -150,7 +159,7 @@ camera =
                 , eyePoint = Point3d.centimeters 20 10 5
                 , upDirection = Direction3d.positiveZ
                 }
-            , viewportHeight = Length.centimeters 13
+            , viewportHeight = Length.centimeters 12
         }
 
 
@@ -196,12 +205,7 @@ view model =
     case model of
         Loaded { colorTexture, labelSide, metalSide, top, bottom, angle } ->
             let
-                nakedMaterial =
-                    Material.metal
-                        { baseColor = Color.grey
-                        , roughness = 0.1
-                        }
-
+                
                 material =
                     Material.texturedMatte colorTexture
 
@@ -213,10 +217,10 @@ view model =
                     Axis3d.through Point3d.origin <|
                         Direction3d.positiveZ
 
-                entities = [Scene3d.cylinder nakedMaterial top
-                    , Scene3d.cylinder nakedMaterial bottom
-                    , makeShadowScene material labelSide
-                    , makeShadowScene nakedMaterial metalSide
+                entities = [top
+                    , bottom
+                    , labelSide
+                    , metalSide
                     ]
                     |> List.map (Scene3d.rotateAround tweakAxis (Angle.degrees 90))
                     |> List.map (Scene3d.rotateAround rotationAxis angle)
@@ -227,10 +231,10 @@ view model =
                         Scene3d.custom
                             { camera = camera
                             , clipDepth = centimeters 0.5
-                            , dimensions = ( Pixels.int 1000, Pixels.int 1000 )
+                            , dimensions = ( Pixels.int 800, Pixels.int 800 )
                             , antialiasing = Scene3d.multisampling
                             , lights = Scene3d.threeLights sunlight sky environment
-                            , exposure = Scene3d.exposureValue 11
+                            , exposure = Scene3d.exposureValue 10.5
                             , toneMapping = Scene3d.hableFilmicToneMapping
                             , whiteBalance = Light.daylight
                             , background = Scene3d.transparentBackground
